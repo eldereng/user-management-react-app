@@ -1,30 +1,25 @@
-import React, { FormEvent, useEffect, useState } from 'react';
-import { FiPlus, FiSearch } from 'react-icons/fi';
-import { Link, useHistory } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
+
+import { useToast } from '../../../hooks/toast';
+
+import api from '../../../services/api';
+
+import { Container, PersonItem, CardBody } from './styles';
 
 import Header from '../../../components/Header';
-import { useToast } from '../../../hooks/toast';
-import api from '../../../services/api';
-import {
-  Container,
-  PersonGallery,
-  PersonItem,
-  Nav,
-  SearchInput,
-  Avatar,
-  CardBody,
-} from './styles';
+import Nav from '../../../components/Nav';
+import Avatar from '../../../components/Avatar';
+import GalleryContainer from '../../../components/GalleryContainer';
+import StaticSearchForm from '../../../components/StaticSearchForm';
 
-interface Person {
-  id: number;
-  name: string;
-  formatted_born_date: string;
-}
+import { PersonListData } from '../types';
 
 const Personlist: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
   const [searchSubmit, setSearchSubmit] = useState('');
-  const [listPerson, setListPerson] = useState<Person[]>([]);
+
+  const [listPerson, setListPerson] = useState<PersonListData[]>([]);
   const [totalPerson, setTotalPerson] = useState(0);
   const { addToast } = useToast();
   const history = useHistory();
@@ -48,8 +43,7 @@ const Personlist: React.FC = () => {
     loadPersonList();
   }, [addToast, searchSubmit]);
 
-  const handleSearchSubmit = (event: FormEvent): void => {
-    event.preventDefault();
+  const handleSearchSubmit = (): void => {
     setSearchSubmit(searchInput);
   };
 
@@ -60,40 +54,22 @@ const Personlist: React.FC = () => {
   return (
     <Container>
       <Header />
-      <Nav>
-        <SearchInput onSubmit={handleSearchSubmit}>
-          <input
-            placeholder="Buscar por nome"
-            name="filter"
-            value={searchInput}
-            onChange={event => setSearchInput(event.target.value)}
-          />
-          <button type="submit">
-            <FiSearch size={16} style={{ margin: '8px', cursor: 'pointer' }} />
-          </button>
-        </SearchInput>
-        <p>
-          (Total{' '}
-          <strong>
-            <b>{totalPerson})</b>
-          </strong>
-        </p>
-        <Link to={'/create-people'}>
-          <FiPlus size={22} color="white" />
-        </Link>
+      <Nav total={totalPerson} pathCreate={'/create-people'}>
+        <StaticSearchForm
+          onClickSearch={handleSearchSubmit}
+          placeholder="Buscar por nome"
+          name="filter"
+          value={searchInput}
+          onChange={event => setSearchInput(event.target.value)}
+        />
       </Nav>
-      <PersonGallery>
+      <GalleryContainer>
         {listPerson.map(person => (
           <PersonItem
             key={person.id}
             onClick={() => handleCardClick(person.id)}
           >
-            <Avatar>
-              <img
-                src={`https://i.pravatar.cc/250/img=${person.id}`}
-                alt={person.name}
-              />
-            </Avatar>
+            <Avatar src={''} alt={''} />
             <CardBody>
               <p>Nome</p>
               <h3>{person.name}</h3>
@@ -102,7 +78,7 @@ const Personlist: React.FC = () => {
             </CardBody>
           </PersonItem>
         ))}
-      </PersonGallery>
+      </GalleryContainer>
     </Container>
   );
 };

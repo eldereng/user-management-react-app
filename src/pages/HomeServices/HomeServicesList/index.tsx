@@ -1,38 +1,35 @@
-import React, { FormEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 
-import { FiPlus, FiSearch } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
 import {
   Container,
-  Nav,
-  SearchInput,
-  HomeServicesGallery,
   HomeServicesItem,
   CardHeader,
   CardBody,
-  Avatar,
   ServicesContainer,
 } from './styles';
+
 import Header from '../../../components/Header';
+import Avatar from '../../../components/Avatar';
+import Nav from '../../../components/Nav';
+import GalleryContainer from '../../../components/GalleryContainer';
+
 import api from '../../../services/api';
 
-interface HomeService {
-  id: number;
-  person_name: string;
-  formatted_created_at: string;
-  breakfast: string;
-  lunch: string;
-  shower: string;
-  dinner: string;
-  snack: string;
-  sleep: string;
-}
+import { useToast } from '../../../hooks/toast';
+
+import { HomeServiceListData } from '../types';
+import StaticSearchForm from '../../../components/StaticSearchForm';
 
 const HomeServicesList: React.FC = () => {
+  const { addToast } = useToast();
+  const history = useHistory();
+
   const [searchInput, setSearchInput] = useState('');
-  const [totalHomeServices, setTotalHomeServices] = useState(0);
-  const [homeServices, setHomeServices] = useState<HomeService[]>([]);
   const [searchSubmit, setSearchSubmit] = useState('');
+  const [total, setTotal] = useState(0);
+
+  const [homeServices, setHomeServices] = useState<HomeServiceListData[]>([]);
 
   useEffect(() => {
     async function loadHomeServices(): Promise<void> {
@@ -42,47 +39,46 @@ const HomeServicesList: React.FC = () => {
         url += `&search=${searchSubmit}`;
         const response = await api.get(url);
         setHomeServices(response.data.results);
-        setTotalHomeServices(response.data.count);
+        setTotal(response.data.count);
       } catch (err) {
-        console.log(err);
+        addToast({
+          type: 'error',
+          title: 'Erro no servidor',
+          description: 'Servidor offline. Tente mais tarde!',
+        });
       }
     }
     loadHomeServices();
-  }, [searchSubmit]);
+  }, [searchSubmit, addToast]);
 
-  const handleSearchSubmit = (event: FormEvent): void => {
-    event.preventDefault();
+  const handleSearchSubmit = (): void => {
     setSearchSubmit(searchInput);
+  };
+
+  const handleCardClick = (id: number): void => {
+    history.push(`/home-services/${id}`);
   };
 
   return (
     <Container>
       <Header />
-      <Nav>
-        <SearchInput onSubmit={event => handleSearchSubmit(event)}>
-          <input
-            placeholder="Buscar por nome"
-            name="filter"
-            value={searchInput}
-            onChange={event => setSearchInput(event.target.value)}
-          />
-          <button type="submit">
-            <FiSearch size={16} style={{ margin: '8px', cursor: 'pointer' }} />
-          </button>
-        </SearchInput>
-        <p>
-          (Total{' '}
-          <strong>
-            <b>{totalHomeServices})</b>
-          </strong>
-        </p>
-        <Link to={'/create-home-services'}>
-          <FiPlus size={22} color="white" />
-        </Link>
+
+      <Nav total={total} pathCreate={'/create-home-services'}>
+        <StaticSearchForm
+          name={'filter'}
+          placeholder={'Buscar por nome'}
+          onClickSearch={handleSearchSubmit}
+          value={searchInput}
+          onChange={event => setSearchInput(event.target.value)}
+        />
       </Nav>
-      <HomeServicesGallery>
+
+      <GalleryContainer>
         {homeServices.map(homeService => (
-          <HomeServicesItem key={homeService.id}>
+          <HomeServicesItem
+            key={homeService.id}
+            onClick={() => handleCardClick(homeService.id)}
+          >
             <CardHeader>
               <p>{homeService.person_name}</p>
               <p>
@@ -91,12 +87,7 @@ const HomeServicesList: React.FC = () => {
               </p>
             </CardHeader>
             <CardBody>
-              <Avatar>
-                <img
-                  src={`https://i.pravatar.cc/250/img=${homeService.id}`}
-                  alt="Marcos Paulo Siqueira Malandro"
-                />
-              </Avatar>
+              <Avatar src={''} alt={''} />
               <ServicesContainer>
                 <p
                   style={{
@@ -158,7 +149,7 @@ const HomeServicesList: React.FC = () => {
             </CardBody>
           </HomeServicesItem>
         ))}
-      </HomeServicesGallery>
+      </GalleryContainer>
     </Container>
   );
 };

@@ -1,41 +1,38 @@
-import React, { useState, useEffect, FormEvent } from 'react';
-import { FiSearch } from 'react-icons/fi';
-import { TiLockOpen, TiLockClosed, TiEye } from 'react-icons/ti';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
+import { TiLockOpen, TiLockClosed, TiEye } from 'react-icons/ti';
+
 import {
   Container,
-  SearchInput,
-  CheckinGallery,
-  Nav,
   CheckinItem,
-  OpenCheckinButton,
-  CloseCheckinButton,
-  AllCheckinButton,
-  Avatar,
   CardBody,
   Actions,
   AvatarBodyContainer,
 } from './styles';
-import Header from '../../../components/Header';
+
 import api from '../../../services/api';
+
 import { useToast } from '../../../hooks/toast';
 
-interface Checkin {
-  id: number;
-  companion_name: null | string;
-  person_name: string;
-  reason: string;
-  formatted_created_at: string;
-  active: boolean;
-}
+import Header from '../../../components/Header';
+import FilterButton from '../../../components/FilterButton';
+import Nav from '../../../components/Nav';
+import GalleryContainer from '../../../components/GalleryContainer';
+import Avatar from '../../../components/Avatar';
+import StaticSearchForm from '../../../components/StaticSearchForm';
+
+import { CheckinListData } from '../types';
 
 const CheckInList: React.FC = () => {
-  const [checkins, setCheckins] = useState<Checkin[]>([]);
+  const { addToast } = useToast();
+
+  const [checkins, setCheckins] = useState<CheckinListData[]>([]);
+
   const [searchInput, setSearchInput] = useState('');
   const [searchSubmit, setSearchSubmit] = useState('');
   const [totalCheckins, setTotalCheckins] = useState(0);
   const [filterActive, setFilterActive] = useState<string | null>(null);
-  const { addToast } = useToast();
 
   useEffect(() => {
     async function loadCheckins(): Promise<void> {
@@ -60,77 +57,85 @@ const CheckInList: React.FC = () => {
     loadCheckins();
   }, [addToast, searchSubmit, filterActive]);
 
-  const handleCheckinClick = ({ id, active }: Checkin): void => {
-    async function changeActive(): Promise<void> {
-      try {
-        await api.patch(`api/v1/checkins/${id}/`, {
-          active: !active,
-        });
+  async function handleCloseCheckin(checkin: CheckinListData): Promise<void> {
+    let data: {
+      person: number;
+      reason: string;
+      active: boolean;
+      companion?: number;
+    } = {
+      person: checkin.person,
+      reason: checkin.reason,
+      active: false,
+    };
 
-        const actualCheckins = [...checkins];
-
-        const index = actualCheckins.findIndex(checkin => checkin.id === id);
-        actualCheckins[index].active = !active;
-
-        setCheckins(actualCheckins);
-      } catch (err) {
-        addToast({
-          type: 'error',
-          title: 'Erro no servidor',
-          description: 'Servidor offline. Tente mais tarde!',
-        });
-      }
+    if (checkin.companion) {
+      data = {
+        ...data,
+        companion: checkin.companion,
+      };
     }
-    changeActive();
-    setTotalCheckins(totalCheckins - 1);
-  };
 
-  const handleSearchSubmit = (event: FormEvent): void => {
-    event.preventDefault();
+    try {
+      await api.put(`api/v1/checkins/${checkin.id}/`, data);
+      const actualCheckins = [...checkins];
+      const index = actualCheckins.findIndex(
+        actualCheckin => actualCheckin.id === checkin.id,
+      );
+      actualCheckins[index].active = false;
+      setCheckins(actualCheckins);
+      addToast({
+        type: 'success',
+        title: 'Checkout com sucesso',
+        description: 'Seu checkout foi realizado com sucesso!',
+      });
+    } catch (err) {
+      addToast({
+        type: 'error',
+        title: 'Erro no servidor',
+        description: 'Servidor offline. Tente mais tarde!',
+      });
+    }
+  }
+
+  const handleSearchSubmit = (): void => {
     setSearchSubmit(searchInput);
   };
 
   return (
     <Container>
       <Header />
-      <Nav>
-        <SearchInput onSubmit={handleSearchSubmit}>
-          <input
-            placeholder="Buscar por nome"
-            name="filter"
-            value={searchInput}
-            onChange={event => setSearchInput(event.target.value)}
-          />
-          <button type="submit">
-            <FiSearch size={16} style={{ margin: '8px', cursor: 'pointer' }} />
-          </button>
-        </SearchInput>
-        <OpenCheckinButton onClick={() => setFilterActive('true')}>
-          Abertos
-        </OpenCheckinButton>
-        <CloseCheckinButton onClick={() => setFilterActive('false')}>
-          Fechados
-        </CloseCheckinButton>
-        <AllCheckinButton onClick={() => setFilterActive(null)}>
-          Todos
-        </AllCheckinButton>
-        <p>
-          (Total{' '}
-          <strong>
-            <b>{totalCheckins})</b>
-          </strong>
-        </p>
+
+      <Nav total={totalCheckins} pathCreate={'/create-checkin'}>
+        <StaticSearchForm
+          onClickSearch={handleSearchSubmit}
+          placeholder={'Buscar por nome'}
+          name={'filter'}
+          value={searchInput}
+          onChange={event => setSearchInput(event.target.value)}
+        />
+        <FilterButton
+          color={'#84c4b7'}
+          text={'Abertos'}
+          onClick={() => setFilterActive('true')}
+        />
+        <FilterButton
+          color={'#414941'}
+          onClick={() => setFilterActive('false')}
+          text={'Fechados'}
+        />
+        <FilterButton
+          color={'#c68a12'}
+          text={'Todos'}
+          onClick={() => setFilterActive(null)}
+        />
       </Nav>
-      <CheckinGallery>
+
+      <GalleryContainer>
         {checkins.map(checkin => (
           <CheckinItem key={checkin.id}>
             <AvatarBodyContainer>
-              <Avatar>
-                <img
-                  src={`https://i.pravatar.cc/250/img=${checkin.id}`}
-                  alt={checkin.person_name}
-                />
-              </Avatar>
+              <Avatar src={''} alt={''} />
               <CardBody>
                 <h3>{checkin.person_name}</h3>
                 <p>{checkin.companion_name}</p>
@@ -145,7 +150,7 @@ const CheckInList: React.FC = () => {
               {checkin.active && (
                 <TiLockOpen
                   size={24}
-                  onClick={() => handleCheckinClick(checkin)}
+                  onClick={() => handleCloseCheckin(checkin)}
                   style={{ cursor: 'pointer' }}
                   color={'#fffffe'}
                 />
@@ -161,7 +166,7 @@ const CheckInList: React.FC = () => {
             </Actions>
           </CheckinItem>
         ))}
-      </CheckinGallery>
+      </GalleryContainer>
     </Container>
   );
 };

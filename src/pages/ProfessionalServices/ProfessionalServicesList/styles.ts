@@ -7,85 +7,6 @@ export const Container = styled.div`
   align-items: center;
 `;
 
-export const Nav = styled.div`
-  display: flex;
-  justify-content: space-evenly;
-  column-gap: 16px;
-  row-gap: 16px;
-  flex-wrap: wrap;
-  align-items: center;
-  border: 1px solid #d3d4d5;
-  margin: 16px 32px;
-  border-radius: 8px;
-  padding: 8px 16px;
-
-  a {
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #b8d866;
-    cursor: pointer;
-    box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.3);
-    text-decoration: none;
-    transition: 400ms;
-
-    &:hover {
-      box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.7);
-    }
-  }
-
-  p {
-    color: #777;
-    strong {
-      color: #111;
-      font-weight: 700;
-    }
-    margin-right: 16px;
-  }
-`;
-
-export const SearchInput = styled.form`
-  border: 1px solid #d3d4d5;
-  width: 220px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-end;
-  margin-right: 16px;
-
-  input {
-    width: 100%;
-    border: none;
-    padding-left: 8px;
-    color: #333;
-
-    :-webkit-autofill,
-    :-webkit-autofill:hover,
-    :-webkit-autofill:focus,
-    :-webkit-autofill:active {
-      transition: background-color 5000s ease-in-out 0s;
-    }
-  }
-
-  button {
-    background: #fff;
-    border: none;
-    border-radius: inherit;
-    display: flex;
-    align-items: center;
-  }
-`;
-
-export const ProfessionalServicesGallery = styled.div`
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  align-items: center;
-  margin: 0px 16px 0 16px;
-`;
-
 const fadeIn = keyframes`
   from {
     opacity: 0;
@@ -97,9 +18,8 @@ const fadeIn = keyframes`
 
 export const ProfessionalServicesItem = styled.div`
   height: 200px;
-  width: 320px;
+  width: 380px;
   background: #fffffe;
-  padding: 8px 16px;
   border-radius: 8px;
   margin: 16px 8px;
   padding: 0px 16px;
@@ -124,12 +44,19 @@ export const CardHeader = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   margin-top: 16px;
   border-bottom: 1px solid #d3d4d5;
 
+  div + div {
+    margin-left: 16px;
+    margin-bottom: 8px;
+  }
+
   h3 {
+    font-size: 16px;
     font-weight: 700;
+    margin-bottom: 4px;
   }
 
   p {
@@ -141,21 +68,18 @@ export const CardBody = styled.div`
   margin-top: 16px;
   h4 {
     font-weight: 700;
+    font-size: 14px;
     color: #555;
+    margin-bottom: 4px;
   }
   p {
     color: #999;
+    font-size: 12px;
   }
-`;
 
-export const Avatar = styled.div`
-  margin-right: 16px;
-  img {
-    width: 64px;
-    height: 64px;
-    display: cover;
-    border-radius: 50%;
-    border: 1px solid #d3d4d5;
-    box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.3);
+  p + p {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #ccc;
   }
 `;

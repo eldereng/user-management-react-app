@@ -12,11 +12,11 @@
 
 ### Production deploy (heroku):
 
-## Buildpacks
+  ### Buildpacks
 
-- > https://buildpack-registry.s3.amazonaws.com/buildpacks/mars/create-react-app.tgz
+    - > https://buildpack-registry.s3.amazonaws.com/buildpacks/mars/create-react-app.tgz
 
-## Include enviroment variable
+  ### Include enviroment variable
 
-- > set REACT_APP_API_URL=https://appa...........
+    - > set REACT_APP_API_URL=https://appa...........
 
